@@ -96,7 +96,6 @@
 
     <div class="addon-list">
 
-        <!-- ✅ 東武50070系アドオン（カード1） -->
         <div class="addon-card">
             <div class="addon-title">東武50070系（純電気ブレーキ・プーン音 / MTC2対応）</div>
 
@@ -108,7 +107,6 @@
                 「プーン」という電気ブレーキ音がなるように設計されています。(改造あり、自作発言なし)
             </div>
 
-            <!-- ✅ ダウンロードボタン + カウンター -->
             <div style="text-align:center; margin-top: 10px;">
                 <a href="train-addon.mcaddon" download onclick="countDownload()">
                     <button class="download-button">⬇ ダウンロード</button>
@@ -126,25 +124,37 @@
         <a href="https://noobnametoko-svg.github.io/noobkaraagesite/addon/">← アドオン一覧に戻る</a>
     </div>
 
-    <!-- ✅ CountAPI カウンター処理 -->
+    <!-- ✅ GitHub Actions 方式の安全なカウンター -->
     <script>
-        const counterKey = "noobkaraage_train_addon";
+        const counterKey = "train-addon";
 
-        // ✅ ページ読み込み時に現在のカウントを取得
-        fetch(`https://api.countapi.xyz/get/noobkaraage/${counterKey}`)
-            .then(res => res.json())
-            .then(data => {
-                document.getElementById("download-count").innerText = data.value + " 回";
+        // ✅ counter.json を読み込んで表示
+        async function loadCount() {
+            const res = await fetch("https://raw.githubusercontent.com/noobnametoko-svg/noobkaraagesite/main/addon/train/counter.json");
+            const data = await res.json();
+            document.getElementById("download-count").innerText = data[counterKey] + " 回";
+        }
+
+        // ✅ ダウンロード時に GitHub Actions に +1 を依頼
+        async function countDownload() {
+            await fetch("https://api.github.com/repos/noobnametoko-svg/noobkaraagesite/dispatches", {
+                method: "POST",
+                headers: {
+                    "Accept": "application/vnd.github.everest-preview+json",
+                    "Content-Type": "application/json",
+                    "Authorization": "Bearer YOUR_TOKEN_HERE"
+                },
+                body: JSON.stringify({
+                    event_type: "increment-counter"
+                })
             });
 
-        // ✅ ダウンロードボタンを押したら +1
-        function countDownload() {
-            fetch(`https://api.countapi.xyz/hit/noobkaraage/${counterKey}`)
-                .then(res => res.json())
-                .then(data => {
-                    document.getElementById("download-count").innerText = data.value + " 回";
-                });
+            // ✅ 少し待ってから再読み込み
+            setTimeout(loadCount, 1500);
         }
+
+        // ✅ ページ読み込み時に表示
+        loadCount();
     </script>
 
 </body>
